@@ -4,11 +4,25 @@ import firebase_admin
 from firebase_admin import credentials, firestore
 import uuid
 import time
+import json
 
-# Firebase 초기화
-if not firebase_admin._apps:
-    cred = credentials.Certificate("serviceAccountKey.json")
-    firebase_admin.initialize_app(cred)
+
+firebase_config = dict(st.secrets["FIREBASE"])
+
+# Firebase 초기화 함수
+def init_firebase():
+    if not firebase_admin._apps:
+        try:
+            # 1. 클라우드 Secrets에서 가져오기
+            firebase_config = dict(st.secrets["FIREBASE"])
+            cred = credentials.Certificate(firebase_config)
+            firebase_admin.initialize_app(cred)
+        except Exception:
+            # 2. 로컬에서 실행할 때는 json 파일 사용
+            cred = credentials.Certificate("serviceAccountKey.json")
+            firebase_admin.initialize_app(cred)
+
+init_firebase()
 db = firestore.client()
 
 # --- 상태 초기화 ---
